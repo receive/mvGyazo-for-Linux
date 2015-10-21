@@ -61,8 +61,10 @@ https.start{
 	res = https.post(CGI,data,header)
 	url = res.response.body
 	puts url
-	if system "which #{clipboard_cmd} >/dev/null 2>&1" then
-		system "echo -n '#{url}' | #{clipboard_cmd}"
-	end
+
+	IO.popen([browser_cmd, url]) {|open_io|
+		open_io.close
+	}
+
 	system "#{browser_cmd} '#{url}'"
 }
