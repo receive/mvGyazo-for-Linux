@@ -14,7 +14,7 @@ idfile = ENV['HOME'] + "/.gyazo.id"
 
 id = ''
 if File.exist?(idfile) then
-  id = File.read(idfile).chomp
+	id = File.read(idfile).chomp
 end
 
 # get active window name
@@ -32,13 +32,13 @@ tmpfile = "/tmp/image_upload#{$$}.png"
 imagefile = ARGV[0]
 
 if imagefile && File.exist?(imagefile) then
-  system "convert '#{imagefile}' '#{tmpfile}'"
+	system "convert '#{imagefile}' '#{tmpfile}'"
 else
-  system "import '#{tmpfile}'"
+	system "import '#{tmpfile}'"
 end
 
 if !File.exist?(tmpfile) then
-  exit
+	exit
 end
 
 imagedata = File.read(tmpfile)
@@ -46,7 +46,7 @@ File.delete(tmpfile)
 
 xuri = ""
 if application_name =~ /(chrom(ium|e)|firefox|iceweasel)/
-  xuri = `xdotool windowfocus #{active_window_id}; xdotool key "ctrl+l"; xdotool key "ctrl+c"; xclip -o`
+	xuri = `xdotool windowfocus #{active_window_id}; xdotool key "ctrl+l"; xdotool key "ctrl+c"; xclip -o`
 end
 
 
@@ -59,10 +59,10 @@ CGI = '/upload.cgi'
 UA   = 'Gyazo/1.2'
 
 metadata = JSON.generate({
-  app: active_window_name,
-  title: active_window_name,
-  url: xuri,
-  note: "#{active_window_name}\n#{xuri}"
+	app: active_window_name,
+	title: active_window_name,
+	url: xuri,
+	note: "#{active_window_name}\n#{xuri}"
 })
 
 data = <<EOF
@@ -82,40 +82,40 @@ content-disposition: form-data; name="imagedata"; filename="gyazo.com"\r
 EOF
 
 header ={
-  'Content-Length' => data.length.to_s,
-  'Content-type' => "multipart/form-data; boundary=#{boundary}",
-  'User-Agent' => UA
+	'Content-Length' => data.length.to_s,
+	'Content-type' => "multipart/form-data; boundary=#{boundary}",
+	'User-Agent' => UA
 }
 
 env = ENV['http_proxy']
 if env then
-  uri = URI(env)
-  proxy_host, proxy_port = uri.host, uri.port
+	uri = URI(env)
+	proxy_host, proxy_port = uri.host, uri.port
 else
-  proxy_host, proxy_port = nil, nil
+	proxy_host, proxy_port = nil, nil
 end
 https = Net::HTTP::Proxy(proxy_host, proxy_port).new(HOST,443)
 https.use_ssl = true
 https.verify_mode = OpenSSL::SSL::VERIFY_PEER
 https.verify_depth = 5
 https.start{
-  res = https.post(CGI,data,header)
-  url = res.response.body
-  puts url
-  if system "which #{clipboard_cmd} >/dev/null 2>&1" then
-    system "echo -n '#{url}' | #{clipboard_cmd}"
-  end
-  system "#{browser_cmd} '#{url}'"
+	res = https.post(CGI,data,header)
+	url = res.response.body
+	puts url
+	if system "which #{clipboard_cmd} >/dev/null 2>&1" then
+		system "echo -n '#{url}' | #{clipboard_cmd}"
+	end
+	system "#{browser_cmd} '#{url}'"
 
-  # save id
-  newid = res.response['X-Gyazo-Id']
-  if newid and newid != "" then
-    if !File.exist?(File.dirname(idfile)) then
-      Dir.mkdir(File.dirname(idfile))
-    end
-    if File.exist?(idfile) then
-      File.rename(idfile, idfile+Time.new.strftime("_%Y%m%d%H%M%S.bak"))
-    end
-    File.open(idfile,"w").print(newid)
-  end
+	# save id
+	newid = res.response['X-Gyazo-Id']
+	if newid and newid != "" then
+		if !File.exist?(File.dirname(idfile)) then
+			Dir.mkdir(File.dirname(idfile))
+		end
+		if File.exist?(idfile) then
+			File.rename(idfile, idfile+Time.new.strftime("_%Y%m%d%H%M%S.bak"))
+		end
+		File.open(idfile,"w").print(newid)
+	end
 }
